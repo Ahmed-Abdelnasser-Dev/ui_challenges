@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'challanges/physics_playground/physics_playground.dart';
-import 'challanges/squensial_loading_dot/squensial_loading_dots.dart';
+import 'challanges/squensial_loading_dot/sequential_loading_dots.dart';
 import 'challanges/taskmanager/task_manager.dart';
 
 class BaseApp extends StatelessWidget {
@@ -43,7 +43,7 @@ class BaseApp extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => SquensialLoadingDots(),
+                    builder: (_) => SequentialLoadingDots(),
                   ),
                 );
               },

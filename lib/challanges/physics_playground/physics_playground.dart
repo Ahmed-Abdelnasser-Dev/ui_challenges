@@ -107,7 +107,7 @@ class _PhysicsPlaygroundState extends State<PhysicsPlayground> {
                 
                 
                 // When draggable is dropped correctly
-                onAccept: (receivedColor) {
+                onAcceptWithDetails: (receivedColor) {
                   if (receivedColor == color) {
                     setState(() {
                       isDropped[index] = true;
