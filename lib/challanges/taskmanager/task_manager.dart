@@ -10,6 +10,39 @@ class TaskManager extends StatefulWidget {
 class _TaskManagerState extends State<TaskManager> {
   final List<String> tasks = ["Task 1", "Task 2", "Task 3"];
 
+  String? _lastRemovedTask;
+  int? _lastRemovedIndex;
+
+  void _deleteTask(int index) {
+    setState(() {
+      _lastRemovedTask = tasks[index];
+      _lastRemovedIndex = index;
+      tasks.removeAt(index);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text("Task deleted"),
+        duration: const Duration(seconds: 3),
+
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.red.shade400,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        action: SnackBarAction(
+          label: "Undo",
+          textColor: Colors.white,
+          onPressed: () {
+            if (_lastRemovedTask != null && _lastRemovedIndex != null) {
+              setState(() {
+                tasks.insert(_lastRemovedIndex!, _lastRemovedTask!);
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,18 +53,13 @@ class _TaskManagerState extends State<TaskManager> {
         centerTitle: true,
         foregroundColor: Colors.white,
       ),
-
-      // For building a reorderable list
       body: ReorderableListView.builder(
         padding: const EdgeInsets.all(8.0),
-
-        // Building each item in the list
+        itemCount: tasks.length,
         itemBuilder: (context, index) {
           return Padding(
             key: ValueKey(tasks[index]),
-            padding: EdgeInsets.only(bottom: 8),
-
-            // For swipe to delete
+            padding: const EdgeInsets.only(bottom: 8),
             child: Dismissible(
               key: ValueKey("dismissible-${tasks[index]}"),
               direction: DismissDirection.endToStart,
@@ -41,32 +69,23 @@ class _TaskManagerState extends State<TaskManager> {
                   color: Colors.red,
                 ),
                 alignment: Alignment.centerRight,
-                padding: EdgeInsets.only(right: 16),
-                child: Icon(Icons.delete, color: Colors.white),
+                padding: const EdgeInsets.only(right: 16),
+                child: const Icon(Icons.delete, color: Colors.white),
               ),
-
-              // Confirm before deleting
               confirmDismiss: (direction) async {
-                return await showDialog(
+                final confirm = await showDialog(
                   context: context,
-                  builder: (_) => DeleteDialogBox(),
+                  builder: (_) => const DeleteDialogBox(),
                 );
+                if (confirm == true) {
+                  _deleteTask(index);
+                }
+                return confirm;
               },
-
-              // Delete the item
-              onDismissed: (direction) {
-                setState(() {
-                  tasks.removeAt(index);
-                });
-              },
-
               child: TaskCard(title: tasks[index]),
             ),
           );
         },
-        itemCount: tasks.length,
-
-        // for moving the item in the list up and down
         onReorder: (oldIndex, newIndex) {
           setState(() {
             if (newIndex > oldIndex) newIndex -= 1;
@@ -74,13 +93,10 @@ class _TaskManagerState extends State<TaskManager> {
             tasks.insert(newIndex, item);
           });
         },
-
-        // Remove shadow by wrapping with Material and setting elevation to 0
         proxyDecorator: (child, index, animation) {
           return Material(
             color: Colors.transparent,
             elevation: 0,
-            type: MaterialType.transparency,
             child: child,
           );
         },
@@ -114,7 +130,7 @@ class _TaskCardState extends State<TaskCard> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       elevation: 1,
       child: ListTile(
-        leading: Icon(Icons.menu),
+        leading: const Icon(Icons.menu),
         title: Text(
           widget.title,
           style: TextStyle(
@@ -143,31 +159,16 @@ class DeleteDialogBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Delete Task"),
-      content: Text("Are you sure you want to delete this task?"),
+      title: const Text("Delete Task"),
+      content: const Text("Are you sure you want to delete this task?"),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-          child: Text("Cancel"),
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text("Cancel"),
         ),
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(true);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Task deleted"),
-                duration: Duration(seconds: 2),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: Colors.red.shade400,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
-          },
-          child: Text("Delete"),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text("Delete"),
         ),
       ],
     );
